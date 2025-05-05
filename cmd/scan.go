@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"filecheck/internal/report"
-	"filecheck/internal/scanner"
 	"fmt"
+
+	"github.com/zampitek/filecheck/internal/report"
+	"github.com/zampitek/filecheck/internal/scanner"
 
 	"github.com/spf13/cobra"
 )

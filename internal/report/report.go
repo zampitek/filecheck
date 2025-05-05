@@ -1,10 +1,11 @@
 package report
 
 import (
-	"filecheck/internal/scanner"
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/zampitek/filecheck/internal/scanner"
 )
 
 var ageLow []scanner.FileInfo
