@@ -14,6 +14,8 @@
 - YAML-based rule system for automation (WIP)
 - Fast execution via Go concurrency
 
+**More features coming soon!**
+
 ## 📦 Installation
 
 Clone the repo and build with Go:
