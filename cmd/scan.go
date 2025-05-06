@@ -24,16 +24,14 @@ var scanCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Printf("Scanned %d files/directories\n", len(scanned.Files))
-
 		var reportMessage string
 
 		if extendedReport {
 			reported := report.CreateExtendedReport(scanned)
-			reportMessage = report.PrintExtendedReport(reported)
+			report.PrintExtendedReport(reported)
 		} else {
 			reported := report.CreateReport(scanned)
-			reportMessage = report.PrintReport(reported)
+			report.PrintReport(reported)
 		}
 
 		fmt.Print(reportMessage)
