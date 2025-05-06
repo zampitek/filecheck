@@ -29,7 +29,7 @@ func PrintExtendedReport(report ExtendedReport) {
 
 	ageTable := table.NewWriter()
 	ageTable.SetOutputMirror(os.Stdout)
-	ageTable.AppendHeader(table.Row{"#", "Path", "Age"})
+	ageTable.AppendHeader(table.Row{"#", "Path", "Age (days)"})
 	blue := color.New(color.FgBlue).SprintFunc()
 
 	if len(report.Top5Oldest) > 0 {

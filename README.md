@@ -48,15 +48,24 @@ filecheck scan ~/Downloads --extended
 ## 📁 Report Example
 
 ```
-Found several files modified over 30 days ago:
 
-    LOW SEVERITY (within 90 days): 267815 files
-    MEDIUM SEVERITY (within 180 days): 40 files
-    HIGH SEVERITY (over 180 days): 817 files
+	[LOW AGE] 	357522
+	[MEDIUM AGE] 	43
+	[HIGH AGE] 	817
 
-Top 5 Oldest Files:
-    0. /home/user/docs/notes.txt    (289 days)
-    ...
+	[LOW SIZE] 	307536
+	[MEDIUM SIZE] 	66
+	[HIGH SIZE] 	14
+
+
++---+-----------------------------------------------------------------------------------------------------+-------------+
+| # | PATH                                                                                                | AGE (days)  |
++---+-----------------------------------------------------------------------------------------------------+-------------+
+| 1 | /home/user/notes.txt                                                                                | 589         |
+| 2 | /home/user/work.odt                                                                                 | 374         |
+| 3 | ...                                                                                                 | ...         |
++---+-----------------------------------------------------------------------------------------------------+-------------+
+
 ```
 
 ## 🧪 Development
