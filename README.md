@@ -24,3 +24,60 @@ Clone the repo and build with Go:
 git clone https://github.com/zampitek/filecheck.git
 cd filecheck
 make build
+```
+
+The executable will be in the bin/ directory.
+
+
+## 🛠 Usage
+
+```bash
+filecheck scan [flags]
+```
+
+### Example
+
+```bash 
+filecheck scan ~/Downloads --extended
+```
+
+### Flags
+
+`--extended, -e`: Generate an extended report (includes Top 5 lists)
+
+## 📁 Report Example
+
+```
+Found several files modified over 30 days ago:
+
+    LOW SEVERITY (within 90 days): 267815 files
+    MEDIUM SEVERITY (within 180 days): 40 files
+    HIGH SEVERITY (over 180 days): 817 files
+
+Top 5 Oldest Files:
+    0. /home/user/docs/notes.txt    (289 days)
+    ...
+```
+
+## 🧪 Development
+
+Format code:
+```bash
+make fmt
+```
+
+Run build:
+```bash
+make run
+```
+
+Clean output:
+```bash
+make clean
+```
+
+## 🧾 License
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+
+## 🙋‍♂️ Contributing
+Contributions, suggestions, and issues are welcome! Feel free to fork the repo or open a PR.
