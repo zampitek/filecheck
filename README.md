@@ -23,11 +23,11 @@ Clone the repo and build with Go:
 ```bash
 git clone https://github.com/zampitek/filecheck.git
 cd filecheck
-make build 		// build for all platforms
+make build 		# build for all platforms
 ```
 or, if you want to build for a specific system
 ```bash
-make [system]   // linux, mac, windows
+make [system]   # linux, mac, windows
 ```
 
 The executable will be in the bin/ directory.
