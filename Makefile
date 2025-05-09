@@ -1,7 +1,7 @@
 BINARY_NAME = filecheck
 OUTPUT_DIR = bin
 
-all: linux
+build: linux mac windows
 
 linux:
 	@echo "Building for Linux..."

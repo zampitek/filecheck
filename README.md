@@ -23,7 +23,11 @@ Clone the repo and build with Go:
 ```bash
 git clone https://github.com/zampitek/filecheck.git
 cd filecheck
-make build
+make build 		// build for all platforms
+```
+or, if you want to build for a specific system
+```bash
+make [system]   // linux, mac, windows
 ```
 
 The executable will be in the bin/ directory.
@@ -32,18 +36,18 @@ The executable will be in the bin/ directory.
 ## 🛠 Usage
 
 ```bash
-filecheck scan [flags]
+filecheck scan [directory] [flags]
 ```
 
 ### Example
 
 ```bash 
-filecheck scan ~/Downloads --extended
+filecheck scan ~/Downloads --checks=age
 ```
 
 ### Flags
 
-`--extended, -e`: Generate an extended report (includes Top 5 lists)
+`--checks=[checks]`: Specify what checks to perform
 
 ## 📁 Report Example
 
