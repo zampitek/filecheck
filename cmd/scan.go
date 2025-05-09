@@ -67,6 +67,4 @@ var scanCmd = &cobra.Command{
 func init() {
 	scanCmd.Flags().String("checks", "", "Comma-separated list of checks to run (e.g. age,size)")
 	scanCmd.Flags().Int("age-top", 0, "Show top N files per age group (only used with 'age' check)")
-
-	rootCmd.AddCommand(scanCmd)
 }
