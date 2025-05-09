@@ -2,43 +2,71 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
-	"github.com/zampitek/filecheck/internal/report"
-	"github.com/zampitek/filecheck/internal/scanner"
+	"filecheck/internal"
+	"filecheck/internal/checks"
+	"filecheck/internal/report"
 
 	"github.com/spf13/cobra"
 )
 
-var extendedReport bool
+func requireCheckForFlag(cmd *cobra.Command, check string, flags ...string) error {
+	checkStr, _ := cmd.Flags().GetString("checks")
+	checks := strings.Split(checkStr, ",")
+	found := false
+
+	for _, c := range checks {
+		if strings.TrimSpace(c) == check {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		for _, flag := range flags {
+			if cmd.Flags().Changed(flag) {
+				return fmt.Errorf("flag --%s can only be used with the '%s' check", flag, check)
+			}
+		}
+	}
+
+	return nil
+}
 
 var scanCmd = &cobra.Command{
 	Use:   "scan [path]",
 	Short: "Scan a directory for file issues",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		path := args[0]
-
-		scanned, err := scanner.Scan(path)
-		if err != nil {
-			fmt.Printf("Scan failed: %v\n", err)
-			return
+		checkStr, _ := cmd.Flags().GetString("checks")
+		checksVars := strings.Split(checkStr, ",")
+		checkSet := make(map[string]bool)
+		for _, check := range checksVars {
+			checkSet[strings.TrimSpace(check)] = true
 		}
 
-		var reportMessage string
-
-		if extendedReport {
-			reported := report.CreateExtendedReport(scanned)
-			report.PrintExtendedReport(reported)
-		} else {
-			reported := report.CreateReport(scanned)
-			report.PrintReport(reported)
+		if err := requireCheckForFlag(cmd, "age", "age-top"); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 
-		fmt.Print(reportMessage)
+		files, _ := internal.Scan(args[0])
+		var reportResult string
+
+		if checkSet["age"] {
+			lowAge, mediumAge, highAge := checks.CheckAge(files)
+			reportResult += report.AgeReport(lowAge, mediumAge, highAge)
+		}
+
+		fmt.Print(reportResult)
 	},
 }
 
 func init() {
-	scanCmd.Flags().BoolVarP(&extendedReport, "extended", "e", false, "Print an extended version of the report")
+	scanCmd.Flags().String("checks", "", "Comma-separated list of checks to run (e.g. age,size)")
+	scanCmd.Flags().Int("age-top", 0, "Show top N files per age group (only used with 'age' check)")
+
 	rootCmd.AddCommand(scanCmd)
 }

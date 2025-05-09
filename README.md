@@ -48,24 +48,14 @@ filecheck scan ~/Downloads --extended
 ## 📁 Report Example
 
 ```
-
-	[LOW AGE] 	357522
-	[MEDIUM AGE] 	43
-	[HIGH AGE] 	817
-
-	[LOW SIZE] 	307536
-	[MEDIUM SIZE] 	66
-	[HIGH SIZE] 	14
-
-
-+---+------------------------------+-------------+
-| # | PATH                         | AGE (days)  |
-+---+------------------------------+-------------+
-| 1 | /home/user/notes.txt         | 589         |
-| 2 | /home/user/work.odt          | 374         |
-| 3 | ...                          | ...         |
-+---+------------------------------+-------------+
-
+AGE GROUP SUMMARY
++--------+------------+------------+
+| GROUP  | FILE COUNT | TOTAL SIZE |
++--------+------------+------------+
+| LOW    |     353278 | 37.96 GB   |
+| MEDIUM |       3638 | 1.12 GB    |
+| HIGH   |        850 | 0.35 GB    |
++--------+------------+------------+
 ```
 
 ## 🧪 Development

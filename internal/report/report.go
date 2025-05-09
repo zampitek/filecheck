@@ -1,71 +1,56 @@
 package report
 
 import (
-	"sort"
+	"fmt"
+	"math"
+	"strings"
 
-	"github.com/zampitek/filecheck/internal/scanner"
+	"filecheck/internal"
+
+	"github.com/fatih/color"
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
-type Report struct {
-	Modified90   []scanner.FileInfo
-	Modified180  []scanner.FileInfo
-	ModifiedHigh []scanner.FileInfo
-	Size10       []scanner.FileInfo
-	Size100      []scanner.FileInfo
-	sizeHigh     []scanner.FileInfo
-}
-
-type ExtendedReport struct {
-	Report
-	Top5Oldest   []scanner.FileInfo
-	Top5Heaviest []scanner.FileInfo
-}
-
-func cathegorizeFiles(files []scanner.FileInfo) (age90, age180, ageHigh, size50, size500, sizeHigh []scanner.FileInfo) {
+func totalSize(files []internal.FileInfo, mU int8) float32 {
+	var totalBytes int64
 	for _, file := range files {
-		if !file.IsDir {
-			switch {
-			case file.Size < 50*1024*1024:
-				size50 = append(size50, file)
-			case file.Size < 500*1024*1024:
-				size500 = append(size500, file)
-			default:
-				sizeHigh = append(sizeHigh, file)
-			}
-		}
-
-		switch {
-		case file.LastAccess < 90:
-			age90 = append(age90, file)
-		case file.LastAccess < 180:
-			age180 = append(age180, file)
-		default:
-			ageHigh = append(ageHigh, file)
-		}
+		totalBytes += file.Size
 	}
 
-	return
+	bytes := float32(totalBytes)
+	var result float32
+
+	switch mU {
+	case 0:
+		result = bytes
+	case 1:
+		result = bytes / 1024
+	case 2:
+		result = bytes / (1024 * 1024)
+	default:
+		result = bytes / (1024 * 1024 * 1024)
+	}
+
+	return float32(math.Round(float64(result)*100) / 100)
 }
 
-func CreateReport(report scanner.ScanReport) Report {
-	age90, age180, ageHigh, size50, size500, sizeHigh := cathegorizeFiles(report.Files)
-	return Report{age90, age180, ageHigh, size50, size500, sizeHigh}
-}
+func AgeReport(lowAge, mediumAge, highAge []internal.FileInfo) string {
+	builder := strings.Builder{}
+	builder.WriteString("\nAGE GROUP SUMMARY\n")
+	green := color.New(color.FgGreen).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+	blue := color.New(color.FgBlue).SprintFunc()
 
-func CreateExtendedReport(report scanner.ScanReport) ExtendedReport {
-	r := CreateReport(report)
+	t := table.NewWriter()
+	t.SetOutputMirror(&builder)
+	t.AppendHeader(table.Row{"GROUP", "FILE COUNT", "TOTAL SIZE"})
+	t.AppendRow(table.Row{green("LOW"), len(lowAge), blue(fmt.Sprintf("%.2f GB", totalSize(lowAge, 3)))})
+	t.AppendRow(table.Row{yellow("MEDIUM"), len(mediumAge), blue(fmt.Sprintf("%.2f GB", totalSize(mediumAge, 3)))})
+	t.AppendRow(table.Row{red("HIGH"), len(highAge), blue(fmt.Sprintf("%.2f GB", totalSize(highAge, 3)))})
 
-	sort.Slice(r.ModifiedHigh, func(i, j int) bool {
-		return r.ModifiedHigh[i].LastAccess > r.ModifiedHigh[j].LastAccess
-	})
-	topAge := min(len(r.ModifiedHigh), 5)
-	topOldest := r.ModifiedHigh[:topAge]
+	t.Render()
+	builder.WriteString("\n\n")
 
-	sort.Slice(r.sizeHigh, func(i, j int) bool {
-		return r.sizeHigh[i].Size > r.sizeHigh[j].Size
-	})
-	topSize := min(len(r.sizeHigh), 5)
-	topHeaviest := r.sizeHigh[:topSize]
-
-	return ExtendedReport{Report: r, Top5Oldest: topOldest, Top5Heaviest: topHeaviest}
+	return builder.String()
 }

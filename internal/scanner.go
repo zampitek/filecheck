@@ -1,4 +1,4 @@
-package scanner
+package internal
 
 import (
 	"os"
@@ -7,17 +7,15 @@ import (
 )
 
 type FileInfo struct {
+	Name       string
 	Path       string
 	Size       int64
 	IsDir      bool
 	LastAccess int16
+	NumFiles   int64
 }
 
-type ScanReport struct {
-	Files []FileInfo
-}
-
-func Scan(root string) (ScanReport, error) {
+func Scan(root string) ([]FileInfo, error) {
 	var files []FileInfo
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -26,6 +24,7 @@ func Scan(root string) (ScanReport, error) {
 		}
 
 		files = append(files, FileInfo{
+			Name:       info.Name(),
 			Path:       path,
 			Size:       info.Size(),
 			IsDir:      info.IsDir(),
@@ -35,5 +34,5 @@ func Scan(root string) (ScanReport, error) {
 		return nil
 	})
 
-	return ScanReport{Files: files}, err
+	return files, err
 }

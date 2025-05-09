@@ -1,4 +1,4 @@
-module github.com/zampitek/filecheck
+module filecheck
 
 go 1.24.2
 
