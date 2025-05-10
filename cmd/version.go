@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"filecheck/version"
 	"fmt"
+
+	"github.com/zampitek/filecheck/version"
 
 	"github.com/spf13/cobra"
 )

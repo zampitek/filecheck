@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"filecheck/internal"
-	"filecheck/internal/checks"
-	"filecheck/internal/report"
+	"github.com/zampitek/filecheck/internal"
+	"github.com/zampitek/filecheck/internal/checks"
+	"github.com/zampitek/filecheck/internal/report"
 
 	"github.com/spf13/cobra"
 )

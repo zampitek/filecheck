@@ -1,7 +1,7 @@
 package checks
 
 import (
-	"filecheck/internal"
+	"github.com/zampitek/filecheck/internal"
 )
 
 func CheckAge(files []internal.FileInfo) (lowAge, mediumAge, highAge []internal.FileInfo) {
