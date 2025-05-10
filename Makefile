@@ -15,18 +15,14 @@ linux:
 mac:
 	@echo "Building for macOS..."
 	@mkdir -p $(OUTPUT_DIR)
-	@COMMIT=$$(git rev-parse --short HEAD); \
-	DATE=$$(date -u +%Y-%m-%dT%H:%M:%SZ); \
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X github.com/zampitek/filecheck/version.Commit=$$COMMIT -X github.com/zampitek/filecheck/internal/version.BuildDate=$$DATE" -o $(OUTPUT_DIR)/$(BINARY_NAME)-macOs_amd64 .; \
-	GOOS=darwin GOARCH=arm64 go build -ldflags "-X github.com/zampitek/filecheck/version.Commit=$$COMMIT -X github.com/zampitek/filecheck/version.BuildDate=$$DATE" -o $(OUTPUT_DIR)/$(BINARY_NAME)-macOs_arm64 .
+	@GOOS=darwin GOARCH=amd64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-linux_amd64 .
+	@GOOS=darwin GOARCH=arm64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-linux_arm64 .
 
 windows:
 	@echo "Building for Windows..."
 	@mkdir -p $(OUTPUT_DIR)
-	@COMMIT=$$(git rev-parse --short HEAD); \
-	DATE=$$(date -u +%Y-%m-%dT%H:%M:%SZ); \
-	GOOS=windows GOARCH=amd64 go build -ldflags "-X github.com/zampitek/filecheck/version.Commit=$$COMMIT -X github.com/zampitek/filecheck/version.BuildDate=$$DATE" -o $(OUTPUT_DIR)/$(BINARY_NAME)-windows_amd64.exe .; \
-	GOOS=windows GOARCH=arm64 go build -ldflags "-X github.com/zampitek/filecheck/version.Commit=$$COMMIT -X github.com/zampitek/filecheck/version.BuildDate=$$DATE" -o $(OUTPUT_DIR)/$(BINARY_NAME)-windows_arm64.exe .
+	@GOOS=windows GOARCH=amd64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-linux_amd64 .
+	@GOOS=windows GOARCH=arm64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-linux_arm64 .
 
 clean:
 	@echo "Cleaning up..."
