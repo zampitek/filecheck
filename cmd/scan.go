@@ -47,6 +47,8 @@ var scanCmd = &cobra.Command{
 			checkSet[strings.TrimSpace(check)] = true
 		}
 
+		ageTop, _ := cmd.Flags().GetInt("age-top")
+
 		if err := requireCheckForFlag(cmd, "age", "age-top"); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -57,7 +59,7 @@ var scanCmd = &cobra.Command{
 
 		if checkSet["age"] {
 			lowAge, mediumAge, highAge := checks.CheckAge(files)
-			reportResult += report.AgeReport(lowAge, mediumAge, highAge)
+			reportResult += report.AgeReport(lowAge, mediumAge, highAge, ageTop)
 		}
 
 		fmt.Print(reportResult)

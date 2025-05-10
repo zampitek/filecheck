@@ -3,6 +3,7 @@ package internal
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 )
 
@@ -35,4 +36,12 @@ func Scan(root string) ([]FileInfo, error) {
 	})
 
 	return files, err
+}
+
+func SortByAge(files []FileInfo) []FileInfo {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].LastAccess > files[j].LastAccess
+	})
+
+	return files
 }
