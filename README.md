@@ -69,11 +69,6 @@ Format code:
 make fmt
 ```
 
-Run build:
-```bash
-make run
-```
-
 Clean output:
 ```bash
 make clean
