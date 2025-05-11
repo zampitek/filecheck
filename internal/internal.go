@@ -45,3 +45,11 @@ func SortByAge(files []FileInfo) []FileInfo {
 
 	return files
 }
+
+func SortBySize(files []FileInfo) []FileInfo {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Size > files[j].Size
+	})
+
+	return files
+}

@@ -48,8 +48,13 @@ var scanCmd = &cobra.Command{
 		}
 
 		ageTop, _ := cmd.Flags().GetInt("age-top")
+		sizeTop, _ := cmd.Flags().GetInt("size-top")
 
 		if err := requireCheckForFlag(cmd, "age", "age-top"); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		if err := requireCheckForFlag(cmd, "size", "size-top"); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -61,6 +66,10 @@ var scanCmd = &cobra.Command{
 			lowAge, mediumAge, highAge := checks.CheckAge(files)
 			reportResult += report.AgeReport(lowAge, mediumAge, highAge, ageTop)
 		}
+		if checkSet["size"] {
+			lowSize, mediumSize, highSize := checks.CheckSize(files)
+			reportResult += report.SizeReport(lowSize, mediumSize, highSize, sizeTop)
+		}
 
 		fmt.Print(reportResult)
 	},
@@ -69,4 +78,5 @@ var scanCmd = &cobra.Command{
 func init() {
 	scanCmd.Flags().String("checks", "", "Comma-separated list of checks to run (e.g. age,size)")
 	scanCmd.Flags().Int("age-top", 0, "Show top N files per age group (only used with 'age' check)")
+	scanCmd.Flags().Int("size-top", 0, "Show top N files per size group (only used with 'size' check)")
 }
