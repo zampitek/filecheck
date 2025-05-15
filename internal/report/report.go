@@ -8,7 +8,6 @@ import (
 	"github.com/zampitek/filecheck/internal"
 
 	"github.com/fatih/color"
-	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 func mUToString(mU int8) string {
@@ -45,34 +44,29 @@ func totalSize(files []internal.FileInfo, mU int8) float32 {
 	return sizeTo(total, mU)
 }
 
-func makeGeneralAgeTable(low, medium, high []internal.FileInfo) string {
+func makeGeneralAgeTable(low, medium, high []internal.FileInfo, g string) string {
 	builder := strings.Builder{}
-	blue := color.New(color.FgBlue).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+
+	builder.WriteString(fmt.Sprintf("\n--- %s GROUP SUMMARY ---\n", g))
 
 	groups := []struct {
 		Label string
 		Files []internal.FileInfo
-		Color func(a ...any) string
 	}{
-		{"LOW", low, color.New(color.FgGreen).SprintFunc()},
-		{"MEDIUM", medium, color.New(color.FgYellow).SprintFunc()},
-		{"HIGH", high, color.New(color.FgRed).SprintFunc()},
+		{green("LOW") + " (modified in last 90 days):", low}, // those spaces are to make formatting consistent
+		{yellow("MEDIUM") + " (modified 90-180 days ago):", medium},
+		{red("HIGH") + " (modified pver 180 days ago):", high},
 	}
 
-	t := table.NewWriter()
-	t.SetOutputMirror(&builder)
-	t.AppendHeader(table.Row{"GROUP", "FILE COUNT", "TOTAL SIZE"})
-
-	for _, g := range groups {
-		t.AppendRow(table.Row{
-			g.Color(g.Label),
-			len(g.Files),
-			blue(fmt.Sprintf("%.2f GB", totalSize(g.Files, 3))),
-		})
+	for _, group := range groups {
+		builder.WriteString(fmt.Sprintf("  %-45s %10d files | %5.2f GB\n", group.Label, len(group.Files), totalSize(group.Files, 3)))
 	}
 
-	t.Render()
-	builder.WriteString("\n\n")
+	builder.WriteString("--------------------------------------------------")
+
 	return builder.String()
 }
 
@@ -84,31 +78,40 @@ func makeTopGroupReport(files []internal.FileInfo, label string, ageTop int, col
 	sorted := sort(files)
 	builder := strings.Builder{}
 
-	builder.WriteString(fmt.Sprintf("GROUP: %s (%s)\n", colorFunc(label), description))
+	builder.WriteString(fmt.Sprintf("[ %s ] - %s\n", colorFunc(label), description))
+	builder.WriteString(fmt.Sprintf("  Top %d:\n", ageTop))
 
-	t := table.NewWriter()
-	t.SetOutputMirror(&builder)
-	t.AppendHeader(table.Row{"FILE PATH", "MODIFIED", "SIZE"})
-
-	for _, f := range sorted[:min(ageTop, len(sorted))] {
-		t.AppendRow(table.Row{f.Path, f.LastAccess, fmt.Sprintf("%.2f %s", sizeTo(f.Size, mU), mUToString(mU))})
+	for i, f := range sorted[:min(ageTop, len(sorted))] {
+		builder.WriteString(fmt.Sprintf("    %d. %-105s %10d days ago | %6.2f %s\n", i+1, f.Path, f.LastAccess, sizeTo(f.Size, mU), mUToString(mU)))
 	}
 
-	t.Render()
 	builder.WriteString("\n\n")
 	return builder.String()
 
 }
 
+func Header() string {
+	builder := strings.Builder{}
+	builder.WriteString("==================================================\n")
+	builder.WriteString("\t\tFILE ANALYSIS REPORT\n")
+	builder.WriteString("==================================================\n")
+
+	return builder.String()
+}
+
 func AgeReport(low, medium, high []internal.FileInfo, ageTop int) string {
 	builder := strings.Builder{}
-	builder.WriteString("\n===================================================AGE GROUP SUMMARY===================================================\n\n")
-	builder.WriteString(makeGeneralAgeTable(low, medium, high))
+
+	builder.WriteString("\n###################\n")
+	builder.WriteString("# BY FILE AGE     #\n")
+	builder.WriteString("###################\n")
+
+	builder.WriteString(makeGeneralAgeTable(low, medium, high, "AGE"))
 
 	if ageTop > 0 {
-		builder.WriteString(makeTopGroupReport(low, "LOW", ageTop, color.New(color.FgGreen).SprintFunc(), "files modified in the last 90 days", 1, internal.SortByAge))
-		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", ageTop, color.New(color.FgYellow).SprintFunc(), "files modified 90-180 days ago", 1, internal.SortByAge))
-		builder.WriteString(makeTopGroupReport(high, "HIGH", ageTop, color.New(color.FgRed).SprintFunc(), "files modified over 180 days ago", 1, internal.SortByAge))
+		builder.WriteString(makeTopGroupReport(low, "LOW", ageTop, color.New(color.FgGreen).SprintFunc(), "Files modified in the last 90 days", 1, internal.SortByAge))
+		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", ageTop, color.New(color.FgYellow).SprintFunc(), "Files modified 90-180 days ago", 1, internal.SortByAge))
+		builder.WriteString(makeTopGroupReport(high, "HIGH", ageTop, color.New(color.FgRed).SprintFunc(), "Files modified over 180 days ago", 1, internal.SortByAge))
 	}
 
 	builder.WriteString("\n\n")
@@ -117,15 +120,18 @@ func AgeReport(low, medium, high []internal.FileInfo, ageTop int) string {
 
 func SizeReport(low, medium, high []internal.FileInfo, sizeTop int) string {
 	builder := strings.Builder{}
-	builder.WriteString("\n===================================================SIZE GROUP SUMMARY===================================================\n\n")
-	builder.WriteString(makeGeneralAgeTable(low, medium, high))
+
+	builder.WriteString("\n###################\n")
+	builder.WriteString("# BY FILE SIZE    #\n")
+	builder.WriteString("###################\n")
+
+	builder.WriteString(makeGeneralAgeTable(low, medium, high, "SIZE"))
 
 	if sizeTop > 0 {
-		builder.WriteString(makeTopGroupReport(low, "LOW", sizeTop, color.New(color.FgGreen).SprintFunc(), "files under 100 MB", 2, internal.SortBySize))
-		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", sizeTop, color.New(color.FgYellow).SprintFunc(), "files between 100 MB and 1 GB", 2, internal.SortBySize))
-		builder.WriteString(makeTopGroupReport(high, "HIGH", sizeTop, color.New(color.FgRed).SprintFunc(), "files over 1 GB", 3, internal.SortBySize))
+		builder.WriteString(makeTopGroupReport(low, "LOW", sizeTop, color.New(color.FgGreen).SprintFunc(), "Files under 100 MB", 2, internal.SortBySize))
+		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", sizeTop, color.New(color.FgYellow).SprintFunc(), "Files between 100 MB and 1 GB", 2, internal.SortBySize))
+		builder.WriteString(makeTopGroupReport(high, "HIGH", sizeTop, color.New(color.FgRed).SprintFunc(), "Files over 1 GB", 3, internal.SortBySize))
 	}
 
-	builder.WriteString("\n\n")
 	return builder.String()
 }

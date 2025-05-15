@@ -62,6 +62,8 @@ var scanCmd = &cobra.Command{
 		files, _ := internal.Scan(args[0])
 		var reportResult string
 
+		reportResult += report.Header()
+
 		if checkSet["age"] {
 			lowAge, mediumAge, highAge := checks.CheckAge(files)
 			reportResult += report.AgeReport(lowAge, mediumAge, highAge, ageTop)
