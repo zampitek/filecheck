@@ -42,7 +42,7 @@ filecheck scan [directory] [flags]
 ### Example
 
 ```bash 
-filecheck scan ~/Downloads --checks=age
+filecheck scan /home/user --checks=size --size-top=3
 ```
 
 ### Flags
@@ -52,6 +52,10 @@ filecheck scan ~/Downloads --checks=age
 ## 📁 Report Example
 
 ```
+==================================================
+		FILE ANALYSIS REPORT
+==================================================
+
 ###################
 # BY FILE SIZE    #
 ###################
@@ -81,7 +85,6 @@ filecheck scan ~/Downloads --checks=age
     1. /home/user/Downloads/Win11.iso                                                                                    51 days ago |   5.34 GB
     2. /home/user/sdk/android/system-images/android-35/google_apis_playstore/x86_64/system.img                           90 days ago |   2.01 GB
     3. /home/user/folder/whatsapp-video_3                                                                                72 days ago |   1.69 GB
-
 
 ```
 

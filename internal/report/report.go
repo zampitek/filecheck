@@ -56,7 +56,7 @@ func makeGeneralAgeTable(low, medium, high []internal.FileInfo, g string) string
 		Label string
 		Files []internal.FileInfo
 	}{
-		{green("LOW") + " (modified in last 90 days):", low}, // those spaces are to make formatting consistent
+		{green("LOW") + " (modified in last 90 days):", low},
 		{yellow("MEDIUM") + " (modified 90-180 days ago):", medium},
 		{red("HIGH") + " (modified pver 180 days ago):", high},
 	}
