@@ -65,7 +65,7 @@ func makeGeneralAgeTable(low, medium, high []internal.FileInfo, g string) string
 		builder.WriteString(fmt.Sprintf("  %-45s %10d files | %5.2f GB\n", group.Label, len(group.Files), totalSize(group.Files, 3)))
 	}
 
-	builder.WriteString("--------------------------------------------------")
+	builder.WriteString("--------------------------------------------------\n\n")
 
 	return builder.String()
 }
