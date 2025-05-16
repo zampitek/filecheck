@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// requireCheckForFlag ensures that a dependent flag is only used if its associated check is enabled.
+// For example, if the "age" check is not present in --checks but --age-top is set, it returns an error.
 func requireCheckForFlag(cmd *cobra.Command, check string, flags ...string) error {
 	checkStr, _ := cmd.Flags().GetString("checks")
 	checks := strings.Split(checkStr, ",")
@@ -39,7 +41,11 @@ var scanCmd = &cobra.Command{
 	Use:   "scan [path]",
 	Short: "Scan a directory for file issues",
 	Args:  cobra.ExactArgs(1),
+
+	// Executes the scan command by collecting file metadata and applying selected checks.
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// Parse and normalize enabled checks
 		checkStr, _ := cmd.Flags().GetString("checks")
 		checksVars := strings.Split(checkStr, ",")
 		checkSet := make(map[string]bool)

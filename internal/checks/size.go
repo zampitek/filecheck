@@ -2,6 +2,12 @@ package checks
 
 import "github.com/zampitek/filecheck/internal"
 
+// CheckSize categorizes a slice of internal.FileInfo based on size.
+//
+// It returns three slices:
+//   - lowSize: files less than 100 MB
+//   - mediumSize: files between 100 MB and 1 GB
+//   - highSize: files more than 1 GB
 func CheckSize(files []internal.FileInfo) (lowSize, mediumSize, highSize []internal.FileInfo) {
 	lowSize = make([]internal.FileInfo, 0)
 	mediumSize = make([]internal.FileInfo, 0)

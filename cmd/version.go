@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// versionCmd is respondible for printing the version number,
+// the commit and the date of building.
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show the version of filecheck",
