@@ -56,7 +56,7 @@ func SortByAge(files []FileInfo) []FileInfo {
 	return files
 }
 
-// SortBySize sorts a []FileInfo slice in smallest-to-biggest order by size.
+// SortBySize sorts a []FileInfo slice in biggest-to-smallest order by size.
 func SortBySize(files []FileInfo) []FileInfo {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Size > files[j].Size

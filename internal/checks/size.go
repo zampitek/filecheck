@@ -25,3 +25,17 @@ func CheckSize(files []internal.FileInfo) (lowSize, mediumSize, highSize []inter
 
 	return lowSize, mediumSize, highSize
 }
+
+func GetEmptyFiles(files []internal.FileInfo) []internal.FileInfo {
+	sortedFiles := internal.SortBySize(files)
+	emptyFiles := make([]internal.FileInfo, 0)
+
+	for i := len(sortedFiles) - 1; i > 0; i-- {
+		if sortedFiles[i].Size > 0 {
+			break
+		}
+		emptyFiles = append(emptyFiles, sortedFiles[i])
+	}
+
+	return emptyFiles
+}

@@ -78,6 +78,10 @@ var scanCmd = &cobra.Command{
 			lowSize, mediumSize, highSize := checks.CheckSize(files)
 			reportResult += report.SizeReport(lowSize, mediumSize, highSize, sizeTop)
 		}
+		if checkSet["empty"] {
+			emptyFiles := checks.GetEmptyFiles(files)
+			reportResult += report.EmptyFilesReport(emptyFiles)
+		}
 
 		fmt.Print(reportResult)
 	},

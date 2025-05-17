@@ -155,5 +155,24 @@ func SizeReport(low, medium, high []internal.FileInfo, sizeTop int) string {
 		builder.WriteString(makeTopGroupReport(high, "HIGH", sizeTop, color.New(color.FgRed).SprintFunc(), "Files over 1 GB", 3, internal.SortBySize))
 	}
 
+	builder.WriteString("\n\n")
+
+	return builder.String()
+}
+
+func EmptyFilesReport(emptyFiles []internal.FileInfo) string {
+	red := color.New(color.FgRed).SprintFunc()
+
+	builder := strings.Builder{}
+
+	builder.WriteString("\n###################\n")
+	builder.WriteString("# EMPTY FILES     #\n")
+	builder.WriteString("###################\n")
+
+	builder.WriteString(fmt.Sprintf("\n  %-25s %10d files\n", red(" 0-SIZED FILES "), len(emptyFiles)))
+	builder.WriteString("--------------------------------------------------\n\n")
+
+	builder.WriteString("\n\n")
+
 	return builder.String()
 }
