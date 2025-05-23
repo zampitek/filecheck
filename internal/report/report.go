@@ -160,6 +160,7 @@ func SizeReport(low, medium, high []internal.FileInfo, sizeTop int) string {
 	return builder.String()
 }
 
+// EmptyFilesReport returns the number of files that have a 0-byte size
 func EmptyFilesReport(emptyFiles []internal.FileInfo) string {
 	red := color.New(color.FgRed).SprintFunc()
 
