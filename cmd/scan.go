@@ -7,6 +7,7 @@ import (
 
 	"github.com/zampitek/filecheck/internal"
 	"github.com/zampitek/filecheck/internal/checks"
+	"github.com/zampitek/filecheck/internal/config"
 	"github.com/zampitek/filecheck/internal/report"
 
 	"github.com/spf13/cobra"
@@ -55,6 +56,19 @@ var scanCmd = &cobra.Command{
 
 		ageTop, _ := cmd.Flags().GetInt("age-top")
 		sizeTop, _ := cmd.Flags().GetInt("size-top")
+		rulesPath, _ := cmd.Flags().GetString("rules")
+
+		var rules config.Rules
+		if rulesPath != "" {
+			loadedRules, err := config.LoadConfig(rulesPath)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+			}
+
+			rules = *loadedRules
+		} else {
+			rules = config.LoadDefaultConfig()
+		}
 
 		if err := requireCheckForFlag(cmd, "age", "age-top"); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -71,11 +85,11 @@ var scanCmd = &cobra.Command{
 		reportResult += report.Header()
 
 		if checkSet["age"] {
-			lowAge, mediumAge, highAge := checks.CheckAge(files)
-			reportResult += report.AgeReport(lowAge, mediumAge, highAge, ageTop)
+			lowAge, mediumAge, highAge := checks.CheckAge(files, rules)
+			reportResult += report.AgeReport(lowAge, mediumAge, highAge, ageTop, rules)
 		}
 		if checkSet["size"] {
-			lowSize, mediumSize, highSize := checks.CheckSize(files)
+			lowSize, mediumSize, highSize := checks.CheckSize(files, rules)
 			reportResult += report.SizeReport(lowSize, mediumSize, highSize, sizeTop)
 		}
 		if checkSet["empty"] {
@@ -91,4 +105,5 @@ func init() {
 	scanCmd.Flags().String("checks", "", "Comma-separated list of checks to run (e.g. age,size)")
 	scanCmd.Flags().Int("age-top", 0, "Show top N files per age group (only used with 'age' check)")
 	scanCmd.Flags().Int("size-top", 0, "Show top N files per size group (only used with 'size' check)")
+	scanCmd.Flags().String("rules", "", "Path to a YAML file with custom rules")
 }

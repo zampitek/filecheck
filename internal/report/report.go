@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/zampitek/filecheck/internal"
+	"github.com/zampitek/filecheck/internal/config"
 
 	"github.com/fatih/color"
 )
@@ -110,7 +111,7 @@ func Header() string {
 }
 
 // AgeReport creates and returns the report message for the age check.
-func AgeReport(low, medium, high []internal.FileInfo, ageTop int) string {
+func AgeReport(low, medium, high []internal.FileInfo, ageTop int, rules config.Rules) string {
 	builder := strings.Builder{}
 
 	builder.WriteString("\n###################\n")
@@ -118,16 +119,16 @@ func AgeReport(low, medium, high []internal.FileInfo, ageTop int) string {
 	builder.WriteString("###################\n")
 
 	descriptions := [3]string{
-		" (modified within the last 90 days):",
-		" (modified 90-180 days ago):",
-		" (modified over 180 days ago):",
+		fmt.Sprintf(" (modified within the last %d days):", rules.Age.Low),
+		fmt.Sprintf(" (modified %d-%d days ago):", rules.Age.Low, rules.Age.Medium),
+		fmt.Sprintf(" (modified over %d days ago):", rules.Age.Medium),
 	}
 	builder.WriteString(makeGeneralTable(low, medium, high, "AGE", descriptions[:]))
 
 	if ageTop > 0 {
-		builder.WriteString(makeTopGroupReport(low, "LOW", ageTop, color.New(color.FgGreen).SprintFunc(), "Files modified in the last 90 days", 1, internal.SortByAge))
-		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", ageTop, color.New(color.FgYellow).SprintFunc(), "Files modified 90-180 days ago", 1, internal.SortByAge))
-		builder.WriteString(makeTopGroupReport(high, "HIGH", ageTop, color.New(color.FgRed).SprintFunc(), "Files modified over 180 days ago", 1, internal.SortByAge))
+		builder.WriteString(makeTopGroupReport(low, "LOW", ageTop, color.New(color.FgGreen).SprintFunc(), fmt.Sprintf("Files modified in the last %d days", rules.Age.Low), 1, internal.SortByAge))
+		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", ageTop, color.New(color.FgYellow).SprintFunc(), fmt.Sprintf("Files modified %d-%d days ago", rules.Age.Low, rules.Age.Medium), 1, internal.SortByAge))
+		builder.WriteString(makeTopGroupReport(high, "HIGH", ageTop, color.New(color.FgRed).SprintFunc(), fmt.Sprintf("Files modified over %d days ago", rules.Age.Medium), 1, internal.SortByAge))
 	}
 
 	builder.WriteString("\n\n")

@@ -1,6 +1,9 @@
 package checks
 
-import "github.com/zampitek/filecheck/internal"
+import (
+	"github.com/zampitek/filecheck/internal"
+	"github.com/zampitek/filecheck/internal/config"
+)
 
 // CheckSize categorizes a slice of internal.FileInfo based on size.
 //
@@ -8,15 +11,15 @@ import "github.com/zampitek/filecheck/internal"
 //   - lowSize: files less than 100 MB
 //   - mediumSize: files between 100 MB and 1 GB
 //   - highSize: files more than 1 GB
-func CheckSize(files []internal.FileInfo) (lowSize, mediumSize, highSize []internal.FileInfo) {
+func CheckSize(files []internal.FileInfo, rules config.Rules) (lowSize, mediumSize, highSize []internal.FileInfo) {
 	lowSize = make([]internal.FileInfo, 0)
 	mediumSize = make([]internal.FileInfo, 0)
 	highSize = make([]internal.FileInfo, 0)
 
 	for _, file := range files {
-		if file.Size < 100*1024*1024 {
+		if file.Size < rules.Size.Low {
 			lowSize = append(lowSize, file)
-		} else if file.Size < 1024*1024*1024 {
+		} else if file.Size < rules.Size.Medium {
 			mediumSize = append(mediumSize, file)
 		} else {
 			highSize = append(highSize, file)
