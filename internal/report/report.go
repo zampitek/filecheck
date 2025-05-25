@@ -136,7 +136,7 @@ func AgeReport(low, medium, high []internal.FileInfo, ageTop int, rules config.R
 }
 
 // SizeReport creates and returns the report message for the size check.
-func SizeReport(low, medium, high []internal.FileInfo, sizeTop int) string {
+func SizeReport(low, medium, high []internal.FileInfo, sizeTop int, rules config.Rules) string {
 	builder := strings.Builder{}
 
 	builder.WriteString("\n###################\n")
@@ -144,16 +144,16 @@ func SizeReport(low, medium, high []internal.FileInfo, sizeTop int) string {
 	builder.WriteString("###################\n")
 
 	descriptions := [3]string{
-		" (files less than 100 MB):",
-		" (files between 100 MB and 1 GB):",
-		" (files over 1 GB):",
+		fmt.Sprintf(" (files less than %d MB):", rules.Size.Low/1024/1024),
+		fmt.Sprintf(" (files between %d MB and %d GB):", rules.Size.Low/1024/1024, rules.Size.Medium/1024/1024/1024),
+		fmt.Sprintf(" (files over %d GB):", rules.Size.Medium/1024/1024/1024),
 	}
 	builder.WriteString(makeGeneralTable(low, medium, high, "SIZE", descriptions[:]))
 
 	if sizeTop > 0 {
-		builder.WriteString(makeTopGroupReport(low, "LOW", sizeTop, color.New(color.FgGreen).SprintFunc(), "Files under 100 MB", 2, internal.SortBySize))
-		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", sizeTop, color.New(color.FgYellow).SprintFunc(), "Files between 100 MB and 1 GB", 2, internal.SortBySize))
-		builder.WriteString(makeTopGroupReport(high, "HIGH", sizeTop, color.New(color.FgRed).SprintFunc(), "Files over 1 GB", 3, internal.SortBySize))
+		builder.WriteString(makeTopGroupReport(low, "LOW", sizeTop, color.New(color.FgGreen).SprintFunc(), fmt.Sprintf("Files under %d MB", rules.Size.Low/1024/1024), 2, internal.SortBySize))
+		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", sizeTop, color.New(color.FgYellow).SprintFunc(), fmt.Sprintf("Files between %d MB and %d GB", rules.Size.Low/1024/1024, rules.Size.Medium/1024/1024/1024), 2, internal.SortBySize))
+		builder.WriteString(makeTopGroupReport(high, "HIGH", sizeTop, color.New(color.FgRed).SprintFunc(), fmt.Sprintf("Files over %d GB", rules.Size.Medium/1024/1024/1024), 3, internal.SortBySize))
 	}
 
 	builder.WriteString("\n\n")
