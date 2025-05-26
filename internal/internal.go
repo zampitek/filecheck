@@ -64,3 +64,10 @@ func SortBySize(files []FileInfo) []FileInfo {
 
 	return files
 }
+
+func Min(a int, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}

@@ -5,10 +5,9 @@ import (
 	"math"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/zampitek/filecheck/internal"
 	"github.com/zampitek/filecheck/internal/config"
-
-	"github.com/fatih/color"
 )
 
 // mUToString converts a mU number from int8 to string,
@@ -26,10 +25,8 @@ func mUToString(mU int8) string {
 	}
 }
 
-// sizeTo takes a size in bytes and converts it to
-// the desired measurement unit.
-//
-// It returns the converted value rounded to the 2nd decimal place.
+// sizeTo takes a size in bytes and converts it to the desired
+// measurement unit, rounded at the 2nd decimal place.
 func sizeTo(size int64, mU int8) float32 {
 	div := float32(1)
 	switch mU {
@@ -52,14 +49,24 @@ func totalSize(files []internal.FileInfo, mU int8) float32 {
 	return sizeTo(total, mU)
 }
 
-// makeGeneralTable creates the outline highlighting the categories of each check.
-func makeGeneralTable(low, medium, high []internal.FileInfo, g string, descriptions []string) string {
-	builder := strings.Builder{}
-	green := color.New(color.FgGreen).SprintFunc()
-	yellow := color.New(color.FgYellow).SprintFunc()
-	red := color.New(color.FgRed).SprintFunc()
+var (
+	green  = color.New(color.FgGreen).SprintFunc()
+	yellow = color.New(color.FgYellow).SprintFunc()
+	red    = color.New(color.FgRed).SprintFunc()
+)
 
-	builder.WriteString(fmt.Sprintf("\n--- %s GROUP SUMMARY ---\n", g))
+// Header returns the header of the report message.
+func Header() string {
+	return `==================================================
+		FILE ANALYSIS REPORT
+==================================================
+`
+}
+
+// buildGroupSummary creates the outline highlighting the categories of each check.
+func buildGroupSummary(title string, low, medium, high []internal.FileInfo, descriptions []string) string {
+	builder := strings.Builder{}
+	builder.WriteString(fmt.Sprintf("\n--- %s GROUP SUMMARY ---\n", title))
 
 	groups := []struct {
 		Label string
@@ -70,111 +77,86 @@ func makeGeneralTable(low, medium, high []internal.FileInfo, g string, descripti
 		{red("HIGH") + descriptions[2], high},
 	}
 
-	for _, group := range groups {
-		builder.WriteString(fmt.Sprintf("  %-55s %10d files | %5.2f GB\n", group.Label, len(group.Files), totalSize(group.Files, 3)))
+	for _, g := range groups {
+		builder.WriteString(fmt.Sprintf("  %-55s %10d files | %5.2f GB\n", g.Label, len(g.Files), totalSize(g.Files, 3)))
 	}
 
 	builder.WriteString("--------------------------------------------------\n\n")
-
 	return builder.String()
 }
 
-// makeTopGroupReport creates a top N ranking of the files for each category of every enabled check.
-func makeTopGroupReport(files []internal.FileInfo, label string, ageTop int, colorFunc func(...any) string, description string, mU int8, sort func(slice []internal.FileInfo) []internal.FileInfo) string {
+// buildTopNReport creates a top N ranking of the files for each category of every enabled check.
+func buildTopNReport(label string, description string, files []internal.FileInfo, top int, colorFn func(...any) string, mU int8, sortFn func([]internal.FileInfo) []internal.FileInfo) string {
 	if len(files) == 0 {
 		return ""
 	}
 
-	sorted := sort(files)
+	sorted := sortFn(files)
 	builder := strings.Builder{}
 
-	builder.WriteString(fmt.Sprintf("[ %s ] - %s\n", colorFunc(label), description))
-	builder.WriteString(fmt.Sprintf("  Top %d:\n", ageTop))
+	builder.WriteString(fmt.Sprintf("[ %s ] - %s\n", colorFn(label), description))
+	builder.WriteString(fmt.Sprintf("  Top %d:\n", top))
 
-	for i, f := range sorted[:min(ageTop, len(sorted))] {
-		builder.WriteString(fmt.Sprintf("    %d. %-105s %10d days ago | %6.2f %s\n", i+1, f.Path, f.LastAccess, sizeTo(f.Size, mU), mUToString(mU)))
+	for i, f := range sorted[:internal.Min(top, len(sorted))] {
+		builder.WriteString(fmt.Sprintf("    %d. %-105s %10d days ago | %6.2f %s\n",
+			i+1, f.Path, f.LastAccess, sizeTo(f.Size, mU), mUToString(mU)))
 	}
 
 	builder.WriteString("\n\n")
-	return builder.String()
-
-}
-
-// Header returns the header of the report message.
-func Header() string {
-	builder := strings.Builder{}
-	builder.WriteString("==================================================\n")
-	builder.WriteString("\t\tFILE ANALYSIS REPORT\n")
-	builder.WriteString("==================================================\n")
-
 	return builder.String()
 }
 
 // AgeReport creates and returns the report message for the age check.
-func AgeReport(low, medium, high []internal.FileInfo, ageTop int, rules config.Rules) string {
+func AgeReport(low, medium, high []internal.FileInfo, top int, rules config.Rules) string {
 	builder := strings.Builder{}
 
-	builder.WriteString("\n###################\n")
-	builder.WriteString("# BY FILE AGE     #\n")
-	builder.WriteString("###################\n")
+	builder.WriteString("\n###################\n# BY FILE AGE     #\n###################\n")
 
-	descriptions := [3]string{
+	descriptions := []string{
 		fmt.Sprintf(" (modified within the last %d days):", rules.Age.Low),
 		fmt.Sprintf(" (modified %d-%d days ago):", rules.Age.Low, rules.Age.Medium),
 		fmt.Sprintf(" (modified over %d days ago):", rules.Age.Medium),
 	}
-	builder.WriteString(makeGeneralTable(low, medium, high, "AGE", descriptions[:]))
+	builder.WriteString(buildGroupSummary("AGE", low, medium, high, descriptions))
 
-	if ageTop > 0 {
-		builder.WriteString(makeTopGroupReport(low, "LOW", ageTop, color.New(color.FgGreen).SprintFunc(), fmt.Sprintf("Files modified in the last %d days", rules.Age.Low), 1, internal.SortByAge))
-		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", ageTop, color.New(color.FgYellow).SprintFunc(), fmt.Sprintf("Files modified %d-%d days ago", rules.Age.Low, rules.Age.Medium), 1, internal.SortByAge))
-		builder.WriteString(makeTopGroupReport(high, "HIGH", ageTop, color.New(color.FgRed).SprintFunc(), fmt.Sprintf("Files modified over %d days ago", rules.Age.Medium), 1, internal.SortByAge))
+	if top > 0 {
+		builder.WriteString(buildTopNReport("LOW", fmt.Sprintf("Files modified in the last %d days", rules.Age.Low), low, top, green, 1, internal.SortByAge))
+		builder.WriteString(buildTopNReport("MEDIUM", fmt.Sprintf("Files modified %d-%d days ago", rules.Age.Low, rules.Age.Medium), medium, top, yellow, 1, internal.SortByAge))
+		builder.WriteString(buildTopNReport("HIGH", fmt.Sprintf("Files modified over %d days ago", rules.Age.Medium), high, top, red, 1, internal.SortByAge))
 	}
 
-	builder.WriteString("\n\n")
 	return builder.String()
 }
 
 // SizeReport creates and returns the report message for the size check.
-func SizeReport(low, medium, high []internal.FileInfo, sizeTop int, rules config.Rules) string {
+func SizeReport(low, medium, high []internal.FileInfo, top int, rules config.Rules) string {
 	builder := strings.Builder{}
 
-	builder.WriteString("\n###################\n")
-	builder.WriteString("# BY FILE SIZE    #\n")
-	builder.WriteString("###################\n")
+	builder.WriteString("\n###################\n# BY FILE SIZE    #\n###################\n")
 
-	descriptions := [3]string{
+	descriptions := []string{
 		fmt.Sprintf(" (files less than %d MB):", rules.Size.Low/1024/1024),
 		fmt.Sprintf(" (files between %d MB and %d GB):", rules.Size.Low/1024/1024, rules.Size.Medium/1024/1024/1024),
 		fmt.Sprintf(" (files over %d GB):", rules.Size.Medium/1024/1024/1024),
 	}
-	builder.WriteString(makeGeneralTable(low, medium, high, "SIZE", descriptions[:]))
+	builder.WriteString(buildGroupSummary("SIZE", low, medium, high, descriptions))
 
-	if sizeTop > 0 {
-		builder.WriteString(makeTopGroupReport(low, "LOW", sizeTop, color.New(color.FgGreen).SprintFunc(), fmt.Sprintf("Files under %d MB", rules.Size.Low/1024/1024), 2, internal.SortBySize))
-		builder.WriteString(makeTopGroupReport(medium, "MEDIUM", sizeTop, color.New(color.FgYellow).SprintFunc(), fmt.Sprintf("Files between %d MB and %d GB", rules.Size.Low/1024/1024, rules.Size.Medium/1024/1024/1024), 2, internal.SortBySize))
-		builder.WriteString(makeTopGroupReport(high, "HIGH", sizeTop, color.New(color.FgRed).SprintFunc(), fmt.Sprintf("Files over %d GB", rules.Size.Medium/1024/1024/1024), 3, internal.SortBySize))
+	if top > 0 {
+		builder.WriteString(buildTopNReport("LOW", fmt.Sprintf("Files under %d MB", rules.Size.Low/1024/1024), low, top, green, 2, internal.SortBySize))
+		builder.WriteString(buildTopNReport("MEDIUM", fmt.Sprintf("Files between %d MB and %d GB", rules.Size.Low/1024/1024, rules.Size.Medium/1024/1024/1024), medium, top, yellow, 2, internal.SortBySize))
+		builder.WriteString(buildTopNReport("HIGH", fmt.Sprintf("Files over %d GB", rules.Size.Medium/1024/1024/1024), high, top, red, 3, internal.SortBySize))
 	}
-
-	builder.WriteString("\n\n")
 
 	return builder.String()
 }
 
 // EmptyFilesReport returns the number of files that have a 0-byte size
 func EmptyFilesReport(emptyFiles []internal.FileInfo) string {
-	red := color.New(color.FgRed).SprintFunc()
-
 	builder := strings.Builder{}
 
-	builder.WriteString("\n###################\n")
-	builder.WriteString("# EMPTY FILES     #\n")
-	builder.WriteString("###################\n")
-
+	builder.WriteString("\n###################\n# EMPTY FILES     #\n###################\n")
 	builder.WriteString(fmt.Sprintf("\n  %-25s %10d files\n", red(" 0-SIZED FILES "), len(emptyFiles)))
-	builder.WriteString("--------------------------------------------------\n\n")
-
-	builder.WriteString("\n\n")
+	builder.WriteString("--------------------------------------------------\n\n\n\n")
 
 	return builder.String()
 }

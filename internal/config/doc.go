@@ -4,5 +4,5 @@
 // It allows to redefine which parameters the package checks should consider.
 //
 // If no rules are passed (as to say, no YAML files are provided), the program will stick
-// to its default values, located in defuaults.go.
+// to its default values, located in defaults.go.
 package config
