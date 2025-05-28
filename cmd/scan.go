@@ -58,6 +58,13 @@ func loadRules(cmd *cobra.Command) config.Rules {
 	if err != nil {
 		exitWithError(err)
 	}
+	if rules.Age == nil {
+		rules.Age = config.LoadDefaultConfig().Age
+	}
+	if rules.Size == nil {
+		rules.Size = config.LoadDefaultConfig().Size
+	}
+
 	return *rules
 }
 
