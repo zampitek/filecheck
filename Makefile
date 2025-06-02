@@ -34,4 +34,7 @@ fmt:
 
 deps:
 	@echo "Installing dependencies..."
-	@go mod tidy
+	@go mod tidy 
+
+install:
+	@cp bin/filecheck-linux_amd64 /usr/local/bin/filecheck

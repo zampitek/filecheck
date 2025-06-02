@@ -4,19 +4,21 @@ import (
 	"os"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/zampitek/filecheck/internal/err"
 )
 
 // LoadConfig returns a Rules struct with the data parsed from
 // the provided YAML file.
 func LoadConfig(path string) (*Rules, error) {
-	file, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
+	file, e := os.ReadFile(path)
+	if e != nil {
+		return nil, err.Wrap("opening config file", e)
 	}
 
 	var rules Rules
-	if err := yaml.Unmarshal(file, &rules); err != nil {
-		return nil, err
+	if e := yaml.Unmarshal(file, &rules); e != nil {
+		return nil, err.Wrap("parsing config file", e)
 	}
 
 	return &rules, nil

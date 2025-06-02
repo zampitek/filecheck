@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/zampitek/filecheck/internal"
 	"github.com/zampitek/filecheck/internal/checks"
 	"github.com/zampitek/filecheck/internal/config"
+	"github.com/zampitek/filecheck/internal/err"
 	"github.com/zampitek/filecheck/internal/report"
 )
 
@@ -36,6 +36,12 @@ func runScan(cmd *cobra.Command, args []string) {
 	result := buildReport(files, checkSet, cmd, rules)
 
 	fmt.Print(result)
+
+	if rules.RuleList != nil {
+		for _, rule := range *rules.RuleList {
+			config.ExecRule(rule, *rules.Age, *rules.Size, rule.Action, files, rule.Confirmation)
+		}
+	}
 }
 
 // parseChecks parses and normalizes the --checks flag into a map.
@@ -54,9 +60,9 @@ func loadRules(cmd *cobra.Command) config.Rules {
 	if rulesPath == "" {
 		return config.LoadDefaultConfig()
 	}
-	rules, err := config.LoadConfig(rulesPath)
-	if err != nil {
-		exitWithError(err)
+	rules, e := config.LoadConfig(rulesPath)
+	if e != nil {
+		err.ExitWithError(e.Error())
 	}
 	if rules.Age == nil {
 		rules.Age = config.LoadDefaultConfig().Age
@@ -81,7 +87,7 @@ func enforceCheckFlagDependency(cmd *cobra.Command, checkSet map[string]bool, ch
 	}
 	for _, flag := range flags {
 		if cmd.Flags().Changed(flag) {
-			exitWithError(fmt.Errorf("flag --%s can only be used with the '%s' check", flag, check))
+			err.ExitWithError(err.Wrap(fmt.Sprintf("flag --%s can only be used with the '%s' check", flag, check), err.ErrCLIError).Error())
 		}
 	}
 }
@@ -107,10 +113,4 @@ func buildReport(files []internal.FileInfo, checkSet map[string]bool, cmd *cobra
 	}
 
 	return output.String()
-}
-
-// exitWithError prints an error and exits the program.
-func exitWithError(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
 }
