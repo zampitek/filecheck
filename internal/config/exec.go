@@ -41,6 +41,8 @@ func ExecRule(rule RuleSpec, age AgeRules, size SizeRules, action string, files 
 	}
 }
 
+// matches checks if a given file matches any of the criteria specified in filters,
+// returns true if so, false otherwise.
 func matches(filters Filters, file internal.FileInfo, age AgeRules, size SizeRules) bool {
 	if filters.Age != nil && file.LastAccess == int16(*filters.Age) {
 		return true
@@ -87,6 +89,7 @@ func matches(filters Filters, file internal.FileInfo, age AgeRules, size SizeRul
 	return false
 }
 
+// matchAction returns a function performing the specified action.
 func matchAction(action string) (func(internal.FileInfo) error, error) {
 	switch action {
 	case "delete":
@@ -96,6 +99,7 @@ func matchAction(action string) (func(internal.FileInfo) error, error) {
 	}
 }
 
+// deleteFile deletes the given file.
 func deleteFile(file internal.FileInfo) error {
 	path := file.Path
 

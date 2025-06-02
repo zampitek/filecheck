@@ -1,40 +1,111 @@
+# ----------------------------
+# Configuration
+# ----------------------------
+
+# Program name
+BINARY := filecheck
+
+# Output directory
 OUTPUT_DIR := bin
-BINARY_NAME := filecheck
+
+# Go package for version metadata (optional)
 PKG := github.com/zampitek/filecheck/version
+
+# Build metadata
 DATE := $(shell date -u +%Y-%m-%dT%H.%M.%SZ)
-COMMIT := $(shell git rev-parse --short HEAD)
+COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
-build: linux mac windows
+# Installation
+PREFIX ?= /usr/local
+BINDIR := $(PREFIX)/bin
 
-linux:
-	@echo "Building for Linux..."
+# ----------------------------
+# Cross-compile targets
+# ----------------------------
+
+PLATFORMS := \
+	linux_amd64 \
+	linux_arm64 \
+	darwin_amd64 \
+	darwin_arm64 \
+	windows_amd64 \
+	windows_arm64
+
+# ----------------------------
+# Source files
+# ----------------------------
+
+GO_SOURCES := $(shell find . -name '*.go')
+
+# ----------------------------
+# Linker flags
+# ----------------------------
+
+LDFLAGS := -ldflags "-X '$(PKG).Commit=$(COMMIT)' -X '$(PKG).BuildDate=$(DATE)'"
+
+# ----------------------------
+# Phony targets
+# ----------------------------
+
+.PHONY: all build $(PLATFORMS) clean install uninstall help
+
+# ----------------------------
+# Default target
+# ----------------------------
+
+all: build
+
+# ----------------------------
+# Build targets
+# ----------------------------
+
+build: $(PLATFORMS)
+
+$(PLATFORMS): %: $(GO_SOURCES)
+	@echo "Building $(BINARY) for $*..."
 	@mkdir -p $(OUTPUT_DIR)
-	@GOOS=linux GOARCH=amd64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-linux_amd64 .
-	@GOOS=linux GOARCH=arm64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-linux_arm64 .
+	@GOOS=$(word 1,$(subst _, ,$*)) GOARCH=$(word 2,$(subst _, ,$*)) \
+		go build $(LDFLAGS) -o $(OUTPUT_DIR)/$(BINARY)-$*
 
-mac:
-	@echo "Building for macOS..."
-	@mkdir -p $(OUTPUT_DIR)
-	@GOOS=darwin GOARCH=amd64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-macOs_amd64 .
-	@GOOS=darwin GOARCH=arm64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-macOs_arm64 .
+# ----------------------------
+# Install target
+# ----------------------------
 
-windows:
-	@echo "Building for Windows..."
-	@mkdir -p $(OUTPUT_DIR)
-	@GOOS=windows GOARCH=amd64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-windows_amd64.exe .
-	@GOOS=windows GOARCH=arm64 go build -ldflags "-X $(PKG).Commit=$(COMMIT) -X '$(PKG).BuildDate=$(DATE)'" -o $(OUTPUT_DIR)/$(BINARY_NAME)-windows_arm64.exe .
+install: $(OUTPUT_DIR)/$(BINARY)-linux_amd64
+	@echo "Installing $(BINARY) to $(BINDIR)..."
+	@mkdir -p $(BINDIR)
+	@cp $(OUTPUT_DIR)/$(BINARY)-linux_amd64 $(BINDIR)/$(BINARY)
+	@chmod 755 $(BINDIR)/$(BINARY)
+	@echo "Installation complete."
+
+# ----------------------------
+# Uninstall target
+# ----------------------------
+
+uninstall:
+	@echo "Uninstalling $(BINARY) from $(BINDIR)..."
+	@rm -f $(BINDIR)/$(BINARY)
+	@echo "Uninstallation complete."
+
+# ----------------------------
+# Clean target
+# ----------------------------
 
 clean:
-	@echo "Cleaning up..."
-	@rm -rf $(OUTPUT_DIR)/*
+	@echo "Cleaning up build artifacts..."
+	@rm -rf $(OUTPUT_DIR)
 
-fmt:
-	@echo "Formatting code..."
-	@go fmt ./...
+# ----------------------------
+# Help target
+# ----------------------------
 
-deps:
-	@echo "Installing dependencies..."
-	@go mod tidy 
-
-install:
-	@cp bin/filecheck-linux_amd64 /usr/local/bin/filecheck
+help:
+	@echo "Available targets:"
+	@echo "  all         Build all platforms"
+	@echo "  build       Same as 'all'"
+	@echo "  [platform]  Build a specific platform, e.g., make linux_amd64"
+	@echo "              Available: $(PLATFORMS)"
+	@echo "  install     Install the Linux amd64 binary to $(PREFIX)/bin"
+	@echo "  uninstall   Remove the installed binary from $(PREFIX)/bin"
+	@echo "  clean       Remove build artifacts"
+	@echo "  help        Show this help message"
