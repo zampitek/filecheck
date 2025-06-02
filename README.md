@@ -11,7 +11,7 @@
   - File count per category
   - Top N oldest or heaviest files
 - CLI interface with configurable flags
-- YAML-based rule system for automation (WIP)
+- YAML-based rule system for automation
 - Fast execution via Go concurrency
 
 **More features coming soon!**
@@ -32,6 +32,11 @@ make [system]   # linux, mac, windows
 
 The executable will be in the bin/ directory.
 
+If you want to install it (only for Linux systems):
+```bash
+make install
+```
+
 
 ## 🛠 Usage
 
@@ -48,6 +53,7 @@ filecheck scan /home/user --checks=size --size-top=3
 ### Flags
 
 `--checks=[checks]`: Specify what checks to perform
+`--rules=[path]`: Specify a YAML file with custom rules
 
 ## 📁 Report Example
 
@@ -63,7 +69,7 @@ filecheck scan /home/user --checks=size --size-top=3
 --- SIZE GROUP SUMMARY ---
   LOW (modified in last 90 days):          331804 files | 13.96 GB
   MEDIUM (modified 90-180 days ago):           50 files | 11.50 GB
-  HIGH (modified pver 180 days ago):            9 files | 16.07 GB
+  HIGH (modified over 180 days ago):            9 files | 16.07 GB
 --------------------------------------------------
 
 [ LOW ] - Files under 100 MB
@@ -89,11 +95,6 @@ filecheck scan /home/user --checks=size --size-top=3
 ```
 
 ## 🧪 Development
-
-Format code:
-```bash
-make fmt
-```
 
 Clean output:
 ```bash
