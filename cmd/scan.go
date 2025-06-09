@@ -97,6 +97,20 @@ func buildReport(files []internal.FileInfo, checkSet map[string]bool, cmd *cobra
 	var output strings.Builder
 	output.WriteString(report.Header())
 
+	if checkSet["all"] {
+		ageTop, _ := cmd.Flags().GetInt("age-top")
+		lowAge, midAge, highAge := checks.CheckAge(files, rules)
+		output.WriteString(report.AgeReport(lowAge, midAge, highAge, ageTop, rules))
+
+		sizeTop, _ := cmd.Flags().GetInt("size-top")
+		lowSize, midSize, highSize := checks.CheckSize(files, rules)
+		output.WriteString(report.SizeReport(lowSize, midSize, highSize, sizeTop, rules))
+
+		empty := checks.GetEmptyFiles(files)
+		output.WriteString(report.EmptyFilesReport(empty))
+
+		return output.String()
+	}
 	if checkSet["age"] {
 		ageTop, _ := cmd.Flags().GetInt("age-top")
 		low, mid, high := checks.CheckAge(files, rules)

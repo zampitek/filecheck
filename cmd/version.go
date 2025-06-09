@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// versionCmd is respondible for printing the version number,
+// versionCmd is responsible for printing the version number,
 // the commit and the date of building.
 var versionCmd = &cobra.Command{
 	Use:   "version",

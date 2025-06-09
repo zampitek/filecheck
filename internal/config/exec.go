@@ -65,7 +65,7 @@ func matches(filters Filters, file internal.FileInfo, age AgeRules, size SizeRul
 		}
 	}
 
-	if filters.Size != nil && file.LastAccess == int16(*filters.Size) {
+	if filters.Size != nil && file.Size == int64(*filters.Size) {
 		return true
 	}
 
